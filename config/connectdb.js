@@ -4,7 +4,7 @@ const serviceAccount = require('../UserAuth/serviceAccountKey.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://your-firebase-database-url.firebaseio.com', // Ganti dengan URL Firestore Firebase Anda
+  databaseURL: 'https://your-firebase-database-url.firebaseio.com',
 });
 
 const db = admin.firestore();
