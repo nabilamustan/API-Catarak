@@ -17,10 +17,10 @@ app.post('/detectCataract', async (req, res) => {
     // Ambil data gambar dari body request
     const imageData = req.body.imageData;
 
-    // Pemrosesan gambar sesuai kebutuhan model.json
+    // Lakukan pemrosesan gambar sesuai kebutuhan model.json
     const result = await imageController.detectCataract(imageData);
 
-    // Menentukan threshold untuk menetapkan apakah gambar memiliki katarak atau tidak
+    // Tentukan threshold untuk menetapkan apakah gambar memiliki katarak atau tidak
     const threshold = 0.5; // Sesuaikan dengan nilai threshold yang sesuai
     const isCataract = result > threshold;
 
