@@ -1,51 +1,34 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { Storage } = require('@google-cloud/storage');
+const imageController = require('./imageController');
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 7000;
 
-// Konfigurasi Multer untuk menyimpan file di folder 'uploads'
-const uploadDirectory = path.join(__dirname, 'uploads');
-
-if (!fs.existsSync(uploadDirectory)) {
-  fs.mkdirSync(uploadDirectory);
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDirectory);
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  }
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
-
-// Inisialisasi penyimpanan Cloud Storage
 const storageClient = new Storage();
 const bucketName = 'eyes-cat';
 
 app.post('/upload', upload.single('blob'), async (req, res) => {
-  const blobData = req.file.buffer;
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' });
+    }
 
-  const modelFileName = 'model.json';
-  const modelFile = storageClient.bucket(bucketName).file(modelFileName);
+    const blobData = req.file.buffer;
 
-  await modelFile.save(blobData, { contentType: 'application/json' });
+    // Deteksi katarak
+    const detectionResult = await imageController.detectCataract(blobData);
 
-  const modelUrl = `https://storage.googleapis.com/eyes-cat/model.json`;
-
-  res.status(200).json({ message: 'File uploaded successfully', modelUrl });
+    // Tanggapan kepada klien
+    res.status(200).json({ message: 'File uploaded and cataract detection complete', detectionResult });
+  } catch (error) {
+    console.error('Error handling upload:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 app.listen(port, () => {
